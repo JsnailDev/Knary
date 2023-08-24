@@ -15,6 +15,8 @@ from app.resources import strings
 from app.services import jwt
 from app.services.authentication import check_email_is_taken, check_username_is_taken
 
+from loguru import logger
+
 router = APIRouter()
 
 
@@ -66,8 +68,9 @@ async def register(
         raise HTTPException(
             status_code=HTTP_400_BAD_REQUEST, detail=strings.EMAIL_TAKEN
         )
-    
-    user = await users_repo.create_user(**user_create.dict())
+
+    user = await users_repo.create_user(**user_create.model_dump())
+    logger.debug("User created", user)
 
     token = jwt.create_access_token_for_user(user, str(config.JWT_SECRET_KEY))
     return UserInResponse(
