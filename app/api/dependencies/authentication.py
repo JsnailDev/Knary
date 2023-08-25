@@ -9,7 +9,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.api.dependencies.database import get_repository
 from app.core.config import JWT_TOKEN_PREFIX, JWT_SECRET_KEY
 from app.db.errors import EntityDoesNotExist
-from app.db.repositories.users import UsersRepository
+from app.db.repositories.user_repository import UsersRepository
 from app.models.domain.users import User
 from app.resources import strings
 from app.services import jwt
@@ -28,7 +28,6 @@ class RWAPIKeyHeader(APIKeyHeader):
     async def __call__(  # noqa: WPS610
         self, request: requests.Request
     ) -> Optional[str]:
-       
         try:
             return await super().__call__(request)
         except StarletteHTTPException as original_auth_exc:
@@ -53,13 +52,19 @@ def _get_authorization_header(api_key: str = Security(RWAPIKeyHeader())) -> str:
     try:
         token_prefix, token = api_key.split(" ")
     except ValueError:
-        logger.debug(strings.WRONG_TOKEN_PREFIX, "api_key:",api_key)
+        logger.debug(strings.WRONG_TOKEN_PREFIX, "api_key:", api_key)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail=strings.WRONG_TOKEN_PREFIX
         )
 
     if token_prefix != JWT_TOKEN_PREFIX:
-        logger.debug(strings.WRONG_TOKEN_PREFIX, "token_prefix:", token_prefix, "api_key:",api_key)
+        logger.debug(
+            strings.WRONG_TOKEN_PREFIX,
+            "token_prefix:",
+            token_prefix,
+            "api_key:",
+            api_key,
+        )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail=strings.WRONG_TOKEN_PREFIX
         )
@@ -81,7 +86,6 @@ async def _get_current_user(
     users_repo: UsersRepository = Depends(get_repository(UsersRepository)),
     token: str = Depends(_get_authorization_header_retriever()),
 ) -> User:
-
     logger.debug("_get_current_user token:", token)
     try:
         username = jwt.get_username_from_token(token, str(JWT_SECRET_KEY))

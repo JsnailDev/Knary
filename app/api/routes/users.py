@@ -4,7 +4,7 @@ from starlette.status import HTTP_400_BAD_REQUEST
 from app.api.dependencies.authentication import get_current_user_authorizer
 from app.api.dependencies.database import get_repository
 from app.core import config
-from app.db.repositories.users import UsersRepository
+from app.db.repositories.user_repository import UsersRepository
 from app.models.domain.users import User
 from app.models.schemas.users import UserInResponse, UserInUpdate, UserWithToken
 from app.resources import strings
@@ -13,6 +13,7 @@ from app.services.authentication import check_email_is_taken, check_username_is_
 
 
 router = APIRouter()
+
 
 @router.get("", response_model=UserInResponse, name="users:get-current-user")
 async def retrieve_current_user(
@@ -49,7 +50,7 @@ async def update_current_user(
                 status_code=HTTP_400_BAD_REQUEST, detail=strings.EMAIL_TAKEN
             )
 
-    user = await users_repo.update_user(user=current_user, **user_update.dict())
+    user = await users_repo.update_user(user=current_user, **user_update.model_dump())
 
     token = jwt.create_access_token_for_user(user, str(config.JWT_SECRET_KEY))
     return UserInResponse(
