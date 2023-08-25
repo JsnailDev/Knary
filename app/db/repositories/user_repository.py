@@ -17,14 +17,16 @@ class UsersRepository(BaseRepository):
         super().__init__()
 
     async def get_user_by_email(self, *, email: str) -> UserInDB:
-        user_row = Users.select().where(Users.email == email).get_or_none()
+        user_row = Users.select().where(Users.email == email).dicts().get_or_none()
         if user_row:
             return UserInDB(**user_row)
 
         raise EntityDoesNotExist("user with email {0} does not exist".format(email))
 
     async def get_user_by_username(self, *, username: str) -> UserInDB:
-        user_row = Users.select().where(Users.username == username).get_or_none()
+        user_row = (
+            Users.select().where(Users.username == username).dicts().get_or_none()
+        )
 
         if user_row:
             return UserInDB(**user_row)
