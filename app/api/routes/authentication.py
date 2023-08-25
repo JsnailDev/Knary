@@ -4,7 +4,7 @@ from starlette.status import HTTP_201_CREATED, HTTP_400_BAD_REQUEST
 from app.api.dependencies.database import get_repository
 from app.core import config
 from app.db.errors import EntityDoesNotExist
-from app.db.repositories.users import UsersRepository
+from app.db.repositories.user_repository import UsersRepository
 from app.models.schemas.users import (
     UserInCreate,
     UserInLogin,
@@ -71,6 +71,7 @@ async def register(
 
     user = await users_repo.create_user(**user_create.model_dump())
     logger.debug("User created", user)
+    logger.info("User created", user)
 
     token = jwt.create_access_token_for_user(user, str(config.JWT_SECRET_KEY))
     return UserInResponse(
