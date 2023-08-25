@@ -1,53 +1,29 @@
-# from typing import Any, List, Sequence, Tuple
-
-# #import asyncio
-# #import aiomysql
-# #from aiomysql.connection import Connection
-# from aiomysql.cursors import Cursor
-# #from asyncpg import Record
-# #from asyncpg.connection import Connection
-# from loguru import logger
-
-
-# def _log_query(query: str, query_params: Tuple[Any, ...]) -> None:
-#     logger.debug("query: {0}, values: {1}", query, query_params)
+from peewee import *
 
 
 class BaseRepository:
-    def __init__(self) -> None:
-        pass
-#     def __init__(self, cur: Cursor) -> None:
-#         #self._conn = conn
-#         self._cur = cur
-#         #with conn.cursor(aiomysql.DictCursor) as cur:
-#             #self._cur = cur
+    # Initialize the repository with a model class
+    def __init__(self, model_class: Model):
+        self.model_class = model_class
 
-#     @property
-#     def connection(self) -> Cursor:
-#         return self._cur
+    # Define a method to create a new record
+    def create(self, **kwargs):
+        return self.model_class.create(**kwargs)
 
-#     async def _log_and_fetch_one(self, query: str, *query_params: Any) -> Any:
-#         _log_query(query, query_params)
-#         await self._cur.execute(query, *query_params)
-#         return await self._cur.fetchone()
+    # Define a method to get a record by id
+    def get_by_id(self, id) -> Model:
+        return self.model_class.get_by_id(id)
 
-#     async def _log_and_fetch_all(self, query: str, *query_params: Any) -> Any:
-#         _log_query(query, query_params)
-#         await self._cur.execute(query, *query_params)
-#         return await self._cur.fetchall()
-    
-#     '''
-#     async def _log_and_fetch_value(self, query: str, *query_params: Any) -> Any:
-#         _log_query(query, query_params)
-#         await self._cur.execute(query, *query_params)
-#         return await self._cur.fetchmany()'''
+    # Define a method to get all records
+    def get_all(self):
+        return self.model_class.get()
 
-#     async def _log_and_execute(self, query: str, *query_params: Any) -> None:
-#         _log_query(query, query_params)
-#         await self._cur.execute(query, *query_params)
+    # Define a method to update a record by id
+    def update_by_id(self, id, **kwargs):
+        return (
+            self.model_class.update(**kwargs).where(self.model_class.id == id).execute()
+        )
 
-#     async def _log_and_execute_many(
-#         self, query: str, *query_params: Sequence[Tuple[Any, ...]]
-#     ) -> None:
-#         _log_query(query, query_params)
-#         await self._cur.executemany(query, *query_params)
+    # Define a method to delete a record by id
+    def delete_by_id(self, id):
+        return self.model_class.delete().where(self.model_class.id == id).execute()

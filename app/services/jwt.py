@@ -12,7 +12,7 @@ from app.core.config import (
     JWT_ALGORITHM,
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES,
 )
-from app.models.domain.users import User
+from app.models.domain.user_domains import User
 from app.models.schemas.jwt import JWTMeta, JWTUser
 
 

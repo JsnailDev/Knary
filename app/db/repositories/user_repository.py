@@ -4,7 +4,7 @@ from typing import Optional, Any
 from peewee import *
 from app.db.errors import EntityDoesNotExist
 from app.db.repositories.base_repository import BaseRepository
-from app.models.domain.users import User, UserInDB
+from app.models.domain.user_domains import User, UserInDB
 
 from loguru import logger
 
@@ -14,7 +14,7 @@ from app.db.schemas import Users
 
 class UsersRepository(BaseRepository):
     def __init__(self) -> None:
-        super().__init__()
+        super().__init__(Users)
 
     async def get_user_by_email(self, *, email: str) -> UserInDB:
         user_row = Users.select().where(Users.email == email).dicts().get_or_none()
