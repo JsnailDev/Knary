@@ -5,7 +5,7 @@ from app.api.dependencies.database import get_repository
 from app.core import config
 from app.db.errors import EntityDoesNotExist
 from app.db.repositories.user_repository import UsersRepository
-from app.models.schemas.users import (
+from app.models.schemas.user_schemas import (
     UserInCreate,
     UserInLogin,
     UserInResponse,

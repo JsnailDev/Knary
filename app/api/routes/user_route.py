@@ -5,8 +5,8 @@ from app.api.dependencies.authentication import get_current_user_authorizer
 from app.api.dependencies.database import get_repository
 from app.core import config
 from app.db.repositories.user_repository import UsersRepository
-from app.models.domain.users import User
-from app.models.schemas.users import UserInResponse, UserInUpdate, UserWithToken
+from app.models.domain.user_domains import User
+from app.models.schemas.user_schemas import UserInResponse, UserInUpdate, UserWithToken
 from app.resources import strings
 from app.services import jwt
 from app.services.authentication import check_email_is_taken, check_username_is_taken

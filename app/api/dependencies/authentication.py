@@ -10,7 +10,7 @@ from app.api.dependencies.database import get_repository
 from app.core.config import JWT_TOKEN_PREFIX, JWT_SECRET_KEY
 from app.db.errors import EntityDoesNotExist
 from app.db.repositories.user_repository import UsersRepository
-from app.models.domain.users import User
+from app.models.domain.user_domains import User
 from app.resources import strings
 from app.services import jwt
 
