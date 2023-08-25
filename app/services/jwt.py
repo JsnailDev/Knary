@@ -1,4 +1,3 @@
-
 from typing import Dict
 from loguru import logger
 from datetime import datetime, timedelta
@@ -7,7 +6,12 @@ from datetime import datetime, timedelta
 import jwt
 from pydantic import ValidationError
 
-from app.core.config import JWT_TOKEN_PREFIX, JWT_SUBJECT, JWT_ALGORITHM, JWT_ACCESS_TOKEN_EXPIRE_MINUTES
+from app.core.config import (
+    JWT_TOKEN_PREFIX,
+    JWT_SUBJECT,
+    JWT_ALGORITHM,
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES,
+)
 from app.models.domain.users import User
 from app.models.schemas.jwt import JWTMeta, JWTUser
 
@@ -18,13 +22,18 @@ def create_jwt_token(
     to_encode = jwt_content.copy()
     logger.debug(to_encode)
     expire = datetime.utcnow() + expires_delta
-    to_encode.update(JWTMeta(exp=expire, sub=JWT_SUBJECT).dict())
-    return JWT_TOKEN_PREFIX + " " + jwt.encode(to_encode, secret_key, algorithm=JWT_ALGORITHM)
+    to_encode.update(JWTMeta(exp=expire, sub=JWT_SUBJECT).model_dump())
+    return (
+        JWT_TOKEN_PREFIX
+        + " "
+        + jwt.encode(to_encode, secret_key, algorithm=JWT_ALGORITHM)
+    )
 
 
 def create_access_token_for_user(user: User, secret_key: str) -> str:
+    logger.debug("User created", user)
     return create_jwt_token(
-        jwt_content=JWTUser(username=user.username).dict(),
+        jwt_content=JWTUser(username=user.username).model_dump(),
         secret_key=secret_key,
         expires_delta=timedelta(minutes=JWT_ACCESS_TOKEN_EXPIRE_MINUTES),
     )

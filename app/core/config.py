@@ -19,14 +19,14 @@ DEBUG: bool = config("DEBUG", cast=bool, default=False)
 DATABASE_URL: DatabaseURL = config("DB_CONNECTION", cast=DatabaseURL)
 MAX_CONNECTIONS_COUNT: int = config("MAX_CONNECTIONS_COUNT", cast=int, default=32)
 MIN_CONNECTIONS_COUNT: int = config("MIN_CONNECTIONS_COUNT", cast=int, default=10)
-STALE_TIMEOUT:str = config("STALE_TIMEOUT",cast=int,default=300)
+STALE_TIMEOUT: str = config("STALE_TIMEOUT", cast=int, default=300)
 
-HOST:str = config("HOST",cast=str,default="127.0.0.1")
-PORT:int = config("PORT",cast=int,default=3306)
-USERNAME:str = config("USERNAME",cast=str,default="root")
-PASSWORD:str = config("PASSWORD",cast=str,default="")
-DATABASE:str = config("DATABASE",cast=str,default="")
-DATABASE_PREFIX:str = config("DATABASE_PREFIX",cast=str,default="")
+HOST: str = config("HOST", cast=str, default="127.0.0.1")
+PORT: int = config("PORT", cast=int, default=3306)
+USERNAME: str = config("USERNAME", cast=str, default="root")
+PASSWORD: str = config("PASSWORD", cast=str, default="")
+DATABASE: str = config("DATABASE", cast=str, default="")
+DATABASE_PREFIX: str = config("DATABASE_PREFIX", cast=str, default="")
 
 
 # jwt authentication

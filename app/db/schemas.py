@@ -17,13 +17,12 @@ from app.db.database import BaseModel
 # 用户
 class Users(BaseModel):
     id = AutoField()
-    user_id = CharField(unique=True)
     username = CharField()
-    user_phone = CharField()
-    email = CharField()
+    user_phone = CharField(null=True)
+    email = CharField(null=True)
     salt = CharField()
     hashed_password = CharField()
     bio = CharField(default="你好")
-    image = CharField()
+    image = CharField(null=True)
     created_at = DateTimeField(default=datetime.datetime.now)
     updated_at = DateTimeField(default=datetime.datetime.now)
