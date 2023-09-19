@@ -1,0 +1,78 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: knary-api
+  name: knary-api-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: knary-api-app
+  template:
+    metadata:
+      labels:
+        app: knary-api-app
+    spec:
+      containers:
+      - name: app
+        image: knary_api:latest
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: api-port
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        env:
+        - name: KNARY_API_HOST
+          value: "0.0.0.0"
+        - name: KNARY_API_WORKERS_COUNT
+          value: "10"
+        - name: KNARY_API_DB_HOST
+          value: "knary-api-db-service"
+        - name: KNARY_API_REDIS_HOST
+          value: "knary-api-redis-service"
+        resources:
+          limits:
+            memory: "200Mi"
+            cpu: "100m"
+        ports:
+        - containerPort: 8000
+          name: api-port
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: knary-api
+  name: knary-api-app-service
+spec:
+  selector:
+    app: knary-api-app
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: api-port
+    name: api-port
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: knary-api-app
+  namespace: knary-api
+  labels:
+    name: knary-api-app
+spec:
+  rules:
+  - host: knary-api.local
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: knary-api-app-service
+            port:
+              name: api-port
+
+---

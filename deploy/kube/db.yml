@@ -1,0 +1,74 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: knary-api
+  name: knary-api-db
+spec:
+  selector:
+    matchLabels:
+      app: knary-api-db
+  template:
+    metadata:
+      labels:
+        app: knary-api-db
+    spec:
+      containers:
+      - name: database
+        image: postgres:13.8-bullseye
+        resources:
+          limits:
+            memory: "300Mi"
+            cpu: "200m"
+        env:
+        - name: POSTGRES_PASSWORD
+          value: "knary_api"
+        - name: POSTGRES_USER
+          value: "knary_api"
+        - name: POSTGRES_DB
+          value: "knary_api"
+        ports:
+        - containerPort: 5432
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: knary-api
+  name: "knary-api-db-service"
+spec:
+  selector:
+    app: knary-api-db
+  ports:
+  - port: 5432
+    targetPort: 5432
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: knary-api
+  name: knary-api-migrator
+spec:
+  ttlSecondsAfterFinished: 100
+  template:
+    spec:
+      containers:
+      - name: migrator
+        image: knary_api:latest
+        command:
+        - "alembic"
+        - "upgrade"
+        - "head"
+        resources:
+          limits:
+            memory: "200Mi"
+            cpu: "250m"
+        env:
+        - name: "KNARY_API_DB_HOST"
+          value: "knary-api-db-service"
+      initContainers:
+      - name: wait-for-db
+        image: toschneck/wait-for-it:latest
+        command: ["./wait-for-it.sh", "-t", "60", "knary-api-db-service:5432"]
+      restartPolicy: Never
+
+---

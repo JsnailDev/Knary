@@ -1,0 +1,146 @@
+version: '3.9'
+
+services:
+  api: &main_app
+    build:
+      context: .
+      dockerfile: ./deploy/Dockerfile
+      target: prod
+    image: knary_api:${KNARY_API_VERSION:-latest}
+    restart: always
+    env_file:
+    - .env
+    labels:
+      # Enables traefik for this container.
+    - traefik.enable=true
+    - traefik.http.routers.knary_api.rule=Host(`${KNARY_API_TRAEFIK_HOST:-knary_api.localhost}`)
+    - traefik.http.routers.knary_api.entrypoints=http
+    - traefik.http.routers.knary_api.service=knary_api
+    - traefik.http.services.knary_api.loadbalancer.server.port=${KNARY_API_PORT:-8000}
+    networks:
+    - default
+    - traefik-shared
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rmq:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      KNARY_API_HOST: 0.0.0.0
+      KNARY_API_DB_HOST: knary_api-db
+      KNARY_API_DB_PORT: 5432
+      KNARY_API_DB_USER: knary_api
+      KNARY_API_DB_PASS: knary_api
+      KNARY_API_DB_BASE: knary_api
+      KNARY_API_RABBIT_HOST: knary_api-rmq
+      KNARY_API_REDIS_HOST: knary_api-redis
+      TESTKAFKA_KAFKA_BOOTSTRAP_SERVERS: '["knary_api-kafka:9092"]'
+
+  taskiq-worker:
+    <<: *main_app
+    labels: []
+    command:
+    - taskiq
+    - worker
+    - knary_api.tkq:broker
+
+  db:
+    image: postgres:13.8-bullseye
+    hostname: knary_api-db
+    environment:
+      POSTGRES_PASSWORD: "knary_api"
+      POSTGRES_USER: "knary_api"
+      POSTGRES_DB: "knary_api"
+    volumes:
+    - knary_api-db-data:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test: pg_isready -U knary_api
+      interval: 2s
+      timeout: 3s
+      retries: 40
+
+  migrator:
+    image: knary_api:${KNARY_API_VERSION:-latest}
+    restart: "no"
+    command: alembic upgrade head
+    environment:
+      KNARY_API_DB_HOST: knary_api-db
+      KNARY_API_DB_PORT: 5432
+      KNARY_API_DB_USER: knary_api
+      KNARY_API_DB_PASS: knary_api
+      KNARY_API_DB_BASE: knary_api
+    depends_on:
+      db:
+        condition: service_healthy
+
+  redis:
+    image: bitnami/redis:6.2.5
+    hostname: "knary_api-redis"
+    restart: always
+    environment:
+      ALLOW_EMPTY_PASSWORD: "yes"
+    healthcheck:
+      test: redis-cli ping
+      interval: 1s
+      timeout: 3s
+      retries: 50
+
+  rmq:
+    image: rabbitmq:3.9.16-alpine
+    hostname: "knary_api-rmq"
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: "guest"
+      RABBITMQ_DEFAULT_PASS: "guest"
+      RABBITMQ_DEFAULT_VHOST: "/"
+    healthcheck:
+      test: rabbitmq-diagnostics check_running -q
+      interval: 3s
+      timeout: 3s
+      retries: 50
+
+  zookeeper:
+    image: "bitnami/zookeeper:3.7.1"
+    hostname: "knary_api-zookeeper"
+    environment:
+      ALLOW_ANONYMOUS_LOGIN: "yes"
+      ZOO_LOG_LEVEL: "ERROR"
+    healthcheck:
+      test: zkServer.sh status
+      interval: 1s
+      timeout: 3s
+      retries: 30
+
+  kafka:
+    image: "bitnami/kafka:3.2.0"
+    hostname: "knary_api-kafka"
+    environment:
+      KAFKA_BROKER_ID: "1"
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+      KAFKA_CFG_LISTENERS: "PLAINTEXT://0.0.0.0:9092"
+      KAFKA_CFG_ADVERTISED_LISTENERS: "PLAINTEXT://knary_api-kafka:9092"
+      KAFKA_CFG_ZOOKEEPER_CONNECT: "knary_api-zookeeper:2181"
+    healthcheck:
+      test: kafka-topics.sh --list --bootstrap-server localhost:9092
+      interval: 1s
+      timeout: 3s
+      retries: 30
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+
+
+
+volumes:
+  knary_api-db-data:
+    name: knary_api-db-data
+
+networks:
+  # Network for traefik.
+  traefik-shared:
+    name: traefik-shared
