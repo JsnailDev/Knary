@@ -38,7 +38,7 @@ opentelemetry-instrumentation-sqlalchemy = "^0.39b0"
 opentelemetry-instrumentation-aio-pika = "^0.39b0"
 loguru = "^0.7.0"
 aiokafka = "^0.8.1"
-taskiq = "^0"
+taskiq = { version = "^0", extras = ["reload"] }
 taskiq-fastapi = "^0"
 taskiq-redis = "^0"
 taskiq-aio-pika = "^0"

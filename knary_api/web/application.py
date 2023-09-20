@@ -1,5 +1,4 @@
 import logging
-from importlib import metadata
 from pathlib import Path
 
 import sentry_sdk
@@ -46,7 +45,7 @@ def get_app() -> FastAPI:
         )
     app = FastAPI(
         title="knary_api",
-        version=metadata.version("knary_api"),
+        version="0.1.0",
         docs_url=None,
         redoc_url=None,
         openapi_url="/api/openapi.json",
