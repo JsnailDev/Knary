@@ -1,15 +1,14 @@
 # type: ignore
-import uuid
 
 from fastapi import Depends
-from fastapi_users import BaseUserManager, FastAPIUsers, UUIDIDMixin, schemas
+from fastapi_users import BaseUserManager, FastAPIUsers, models, schemas
 from fastapi_users.authentication import (
     AuthenticationBackend,
     BearerTransport,
     CookieTransport,
     JWTStrategy,
 )
-from fastapi_users.db import SQLAlchemyBaseUserTableUUID, SQLAlchemyUserDatabase
+from fastapi_users.db import SQLAlchemyBaseUserTable, SQLAlchemyUserDatabase
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from knary_api.db.base import Base
@@ -17,11 +16,11 @@ from knary_api.db.dependencies import get_db_session
 from knary_api.settings import settings
 
 
-class User(SQLAlchemyBaseUserTableUUID, Base):
+class User(SQLAlchemyBaseUserTable, Base):
     """Represents a user entity."""
 
 
-class UserRead(schemas.BaseUser[uuid.UUID]):
+class UserRead(schemas.BaseUser):
     """Represents a read command for a user."""
 
 
@@ -33,7 +32,7 @@ class UserUpdate(schemas.BaseUserUpdate):
     """Represents an update command for a user."""
 
 
-class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
+class UserManager(BaseUserManager[User, models.ID]):
     """Manages a user session and its tokens."""
 
     reset_password_token_secret = settings.users_secret
@@ -91,6 +90,6 @@ backends = [
     auth_jwt,
 ]
 
-api_users = FastAPIUsers[User, uuid.UUID](get_user_manager, backends)
+api_users = FastAPIUsers[User, models.ID](get_user_manager, backends)
 
 current_active_user = api_users.current_user(active=True)
