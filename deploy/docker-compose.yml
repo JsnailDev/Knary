@@ -9,17 +9,17 @@ services:
     image: knary_api:${KNARY_API_VERSION:-latest}
     restart: always
     env_file:
-    - .env
+      - .env
     labels:
       # Enables traefik for this container.
-    - traefik.enable=true
-    - traefik.http.routers.knary_api.rule=Host(`${KNARY_API_TRAEFIK_HOST:-knary_api.localhost}`)
-    - traefik.http.routers.knary_api.entrypoints=http
-    - traefik.http.routers.knary_api.service=knary_api
-    - traefik.http.services.knary_api.loadbalancer.server.port=${KNARY_API_PORT:-8000}
+      - traefik.enable=true
+      - traefik.http.routers.knary_api.rule=Host(`${KNARY_API_TRAEFIK_HOST:-knary_api.localhost}`)
+      - traefik.http.routers.knary_api.entrypoints=http
+      - traefik.http.routers.knary_api.service=knary_api
+      - traefik.http.services.knary_api.loadbalancer.server.port=${KNARY_API_PORT:-8000}
     networks:
-    - default
-    - traefik-shared
+      - default
+      - traefik-shared
     depends_on:
       db:
         condition: service_healthy
@@ -44,9 +44,9 @@ services:
     <<: *main_app
     labels: []
     command:
-    - taskiq
-    - worker
-    - knary_api.tkq:broker
+      - taskiq
+      - worker
+      - knary_api.tkq:broker
 
   db:
     image: postgres:13.8-bullseye
@@ -56,13 +56,27 @@ services:
       POSTGRES_USER: "knary_api"
       POSTGRES_DB: "knary_api"
     volumes:
-    - knary_api-db-data:/var/lib/postgresql/data
+      - knary_api-db-data:/var/lib/postgresql/data
     restart: always
     healthcheck:
       test: pg_isready -U knary_api
       interval: 2s
       timeout: 3s
       retries: 40
+
+  pgadmin:
+    image: dpage/pgadmin4
+    user: root
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin1234!
+    ports:
+      - "5050:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - knary_api-db-data:/var/lib/pgadmin/sessions:rw
 
   migrator:
     image: knary_api:${KNARY_API_VERSION:-latest}

@@ -14,10 +14,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from knary_api.db.base import Base
 from knary_api.db.dependencies import get_db_session
 from knary_api.settings import settings
+from sqlalchemy.orm import Mapped, mapped_column
 
 
-class User(SQLAlchemyBaseUserTable, Base):
+class User(SQLAlchemyBaseUserTable[int], Base):
     """Represents a user entity."""
+
+    id: Mapped[int] = mapped_column(primary_key=True)
 
 
 class UserRead(schemas.BaseUser):
