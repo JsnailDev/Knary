@@ -21,7 +21,7 @@ def upgrade() -> None:
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
         sa.Column("email", sa.String(length=200), nullable=True),
         sa.Column("password", sa.String(length=200), nullable=True),
-        sa.Column("user.hashed_password", sa.String(length=200), nullable=True),
+        sa.Column("hashed_password", sa.String(length=200), nullable=True),
         sa.Column("is_active", sa.Boolean, nullable=True, default=False),
         sa.Column("is_superuser", sa.Boolean, nullable=True, default=False),
         sa.Column("is_verified", sa.Boolean, nullable=True, default=False),
@@ -30,4 +30,4 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    pass
+    op.drop_table("user")
